@@ -194,7 +194,7 @@ class $93059d4fd2f5365b$export$dc77199a917e22c2 {
             if (person?.annotations) {
                 ctx.globalAlpha = 0.8;
                 ctx.fillStyle = "lightblue";
-                const pointSize = 2;
+                const pointSize = 1.5;
                 const rightEyeUpper0 = person.annotations.rightEyeUpper0;
                 const rightEyeLower0 = person.annotations.rightEyeLower0;
                 const leftEyeUpper0 = person.annotations.leftEyeUpper0;

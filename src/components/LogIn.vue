@@ -23,7 +23,7 @@
       </div>
       <form class="login" action="#">
         <h2>TimelessVisage</h2>
-        <div>Sign up and start enjoying</div>
+        <div>Sign in with your Face ID</div>
         <!-- <div style="position: relative;">
           <video id="dte-video" />
           <canvas id="dte-canvas" style="position: absolute; top:0 ; left:0;" />
@@ -31,16 +31,27 @@
         <!-- <input type="text" placeholder="Name" />
         <input type="email" placeholder="Email" />
         <input type="password" placeholder="Password" /> -->
-        <button>Sign up</button>
+        <button @click.prevent="() => capture = true">Capture Face ID</button>
       </form>
       <form class="sign-up" action="#">
         <h2>TimelessVisage</h2>
-        <div>To continue, log in to Gamer4TK</div>
+        <div>To continue, log in to TimelessVisage</div>
         <input type="email" placeholder="Email" />
         <input type="password" placeholder="Password" />
         <a href="#">Forgot password?</a>
         <button>Sign in</button>
       </form>
+    </div>
+
+    <div class="modal" :style="{ display: capture ? 'flex' : 'none' }">
+      <button @click.prevent="() => capture = false"
+        style="height: 40px; margin:0px; padding: 0px; background-color: transparent; border: none; color: red;; position: absolute; right: 20px">x</button>
+      <div style="position: relative; margin-top: 40px; margin-bottom: 10px; align-self: center ">
+        <video id="dte-video" height="400px" />
+        <canvas id="dte-canvas" style="position: absolute; top:0 ; left:0;" />
+      </div>
+      <button @click.prevent="handleCapture()"
+        style="width: max-content; align-self: center !important; margin-top: 20px;">Capture</button>
     </div>
   </article>
 </template>
@@ -49,12 +60,14 @@
 <script>
 import { dteSDK } from "../js/modern.js";
 
+let faceDetection;
 export default {
   components: {
   },
   data: () => {
     return {
       slide: false,
+      capture: false,
     };
   },
   mounted() {
@@ -69,12 +82,31 @@ export default {
     let sdk = new dteSDK(config);
     console.log(sdk)
 
-    // sdk.initFaceDetection();
-  }
+    faceDetection = sdk.initFaceDetection();
+  },
+  methods: {
+    handleCapture() {
+      console.log(faceDetection.getDetectedFace())
+    }
+  },
 };
 </script>
 
 <style lang="scss" scoped>
+.modal {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  z-index: 900;
+  top: 10%;
+  width: 900px;
+  height: 600px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to bottom, #efefef, #ccc);
+}
+
 .wrapper {
   position: relative;
   width: 868px;
