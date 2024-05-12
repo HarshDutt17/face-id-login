@@ -7,6 +7,7 @@
           <div class="overlay-left">
             <h2>Already have an account?</h2>
             <p>Sign in with your Face ID</p>
+
             <!-- @click=slide activates or deactivates the transition between the login and sign-up forms -->
             <button class="invert" id="login" @click="slide = !slide">
               Capture Face ID
@@ -24,6 +25,8 @@
       <form class="login" action="#">
         <h2>TimelessVisage</h2>
         <div>Sign in with your Face ID</div>
+        <input v-model="username" type="text" placeholder="Username" />
+
         <!-- <div style="position: relative;">
           <video id="dte-video" />
           <canvas id="dte-canvas" style="position: absolute; top:0 ; left:0;" />
@@ -31,15 +34,15 @@
         <!-- <input type="text" placeholder="Name" />
         <input type="email" placeholder="Email" />
         <input type="password" placeholder="Password" /> -->
-        <button @click.prevent="() => capture = true">Capture Face ID</button>
+        <button @click.prevent="startCapturing">Capture Face ID</button>
       </form>
       <form class="sign-up" action="#">
         <h2>TimelessVisage</h2>
         <div>To continue, log in to TimelessVisage</div>
-        <input type="email" placeholder="Email" />
+        <input v-model="username" type="text" placeholder="Username" />
         <input type="password" placeholder="Password" />
         <a href="#">Forgot password?</a>
-        <button>Sign in</button>
+        <button @click.prevent="handleSignIn">Sign in</button>
       </form>
     </div>
 
@@ -47,11 +50,13 @@
       <button @click.prevent="() => capture = false"
         style="height: 40px; margin:0px; padding: 0px; background-color: transparent; border: none; color: red;; position: absolute; right: 20px">x</button>
       <div style="position: relative; margin-top: 40px; margin-bottom: 10px; align-self: center ">
-        <video id="dte-video" height="400px" />
+        <video id="dte-video" height="400px" ref="videoPlayer" />
         <canvas id="dte-canvas" style="position: absolute; top:0 ; left:0;" />
       </div>
       <button @click.prevent="handleCapture()"
-        style="width: max-content; align-self: center !important; margin-top: 20px;">Capture</button>
+        style="width: max-content; align-self: center !important; margin-top: 20px;">Capture <span v-if="addNewFace">New
+          Face
+        </span></button>
     </div>
   </article>
 </template>
@@ -61,6 +66,7 @@
 import { dteSDK } from "../js/modern.js";
 
 let faceDetection;
+let sdk;
 export default {
   components: {
   },
@@ -68,6 +74,9 @@ export default {
     return {
       slide: false,
       capture: false,
+      capturedFrame: "",
+      addNewFace: false,
+      username: "",
     };
   },
   mounted() {
@@ -79,14 +88,62 @@ export default {
         enableLogs: true,
       }
     }
-    let sdk = new dteSDK(config);
+    sdk = new dteSDK(config);
     console.log(sdk)
 
-    faceDetection = sdk.initFaceDetection();
   },
   methods: {
-    handleCapture() {
-      console.log(faceDetection.getDetectedFace())
+    async startCapturing() {
+      this.capture = true;
+      faceDetection = sdk.initFaceDetection();
+    },
+    async handleCapture() {
+      console.log(faceDetection.getDetectedFace());
+      const video = this.$refs.videoPlayer;
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      this.capturedFrame = canvas.toDataURL().split(',')[1];
+      await this.verifyUser();
+    },
+    async handleSignIn() {
+      this.startCapturing();
+      this.addNewFace = true
+      console.log(this.username)
+    },
+    async verifyUser() {
+      try {
+        const username = this.username;
+        const url = this.addNewFace ? "http://localhost:8000/updateuser" : "http://localhost:8000/verifyUser";
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: username,
+            faces: [this.capturedFrame]
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const responseData = await response.json();
+
+        // Handle API response, for example, show success message or redirect user
+        console.log('API response:', responseData);
+        // this.capture = false;
+      } catch (error) {
+        // Handle error, for example, show error message
+        console.error('Error:', error);
+      }
+
+      this.addNewFace = false;
+
     }
   },
 };
