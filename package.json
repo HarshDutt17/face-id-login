@@ -27,7 +27,7 @@
     "dotenv": "^16.4.5",
     "nanoid": "^5.0.7",
     "process": "^0.11.10",
-    "vue": "^3.4.27"
+    "vue": "^3.4.37"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.8.0",
